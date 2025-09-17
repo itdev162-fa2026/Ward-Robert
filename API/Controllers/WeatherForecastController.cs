@@ -1,5 +1,6 @@
 using Domain;
 using Microsoft.AspNetCore.Mvc;
+using Persistence;
 
 namespace API.Controllers;
 
@@ -15,9 +16,11 @@ public class WeatherForecastController : ControllerBase
 
     private readonly ILogger<WeatherForecastController> _logger;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger)
+    private readonly DataContext _context;
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, DataContext context)
     {
         _logger = logger;
+        _context = context;
     }
 
     [HttpGet(Name = "GetWeatherForecast")]
@@ -32,4 +35,28 @@ public class WeatherForecastController : ControllerBase
         })
         .ToArray();
     }
+
+    [HttpPost]
+    public ActionResult<WeatherForecast> Create()
+    {
+        //viewed in VsCode console
+        Console.WriteLine($"Database Path: {_context.DbPath}");
+        Console.WriteLine("Insert a new WeatherForecast entry...");
+
+        var forecast = new WeatherForecast()
+        {
+            Date = new DateOnly(),
+            TemperatureC = 75,
+            Summary = "Warm"
+        };
+        _context.WeatherForecasts.Add(forecast);
+        var success = _context.SaveChanges() > 0;
+
+        if (success)
+        {
+            return forecast;
+        }
+         throw new Exception("Error creating WeatherForecast entry..."); 
+    }
+    
 }
