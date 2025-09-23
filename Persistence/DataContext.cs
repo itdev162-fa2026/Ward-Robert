@@ -1,12 +1,14 @@
-namespace Persistence{
+namespace Persistence
+{
     using Domain;
     using Microsoft.EntityFrameworkCore;
 
     public class DataContext : DbContext
     {
         public DbSet<WeatherForecast> WeatherForecasts { get; set; }
-       
-       public string DbPath { get; }
+
+        public DbSet<Product> Products { get; set; }
+        public string DbPath { get; }
 
         public DataContext()
         {
@@ -20,6 +22,7 @@ namespace Persistence{
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseSqlite($"Data Source={DbPath}");
-        } 
+        }
     }
+    
 }
