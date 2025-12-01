@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getProductById } from '../services/api';
-import './ProductDetail.css';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getProductById } from "../services/api";
+import "./ProductDetail.css";
 
-function ProductDetail() {
+function ProductDetail({ addToCart }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -18,7 +20,7 @@ function ProductDetail() {
         setProduct(data);
         setError(null);
       } catch (err) {
-        setError('Failed to load product. Please try again later.');
+        setError("Failed to load product. Please try again later.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -27,6 +29,21 @@ function ProductDetail() {
 
     fetchProduct();
   }, [id]);
+
+  const handleAddToCart = () => {
+    if (product && product.currentStock > 0) {
+      addToCart(product, quantity);
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000); // Hide message after 2 seconds
+    }
+  };
+
+  const handleQuantityChange = (e) => {
+    const value = parseInt(e.target.value);
+    if (value >= 1 && value <= 10) {
+      setQuantity(value);
+    }
+  };
 
   if (loading) {
     return <div className="loading">Loading product...</div>;
@@ -42,22 +59,24 @@ function ProductDetail() {
 
   const displayPrice = product.isOnSale ? product.salePrice : product.price;
   const hasDiscount = product.isOnSale && product.salePrice < product.price;
+  const isOutOfStock = product.currentStock === 0;
 
   return (
     <div className="product-detail-container">
-      <button onClick={() => navigate('/')} className="back-button">
+      <button onClick={() => navigate("/")} className="back-button">
         ← Back to Products
       </button>
 
       <div className="product-detail">
         <div className="product-detail-image">
           <img
-            src={product.imageUrl || 'https://via.placeholder.com/600x400?text=No+Image'}
+            src={
+              product.imageUrl ||
+              "https://placehold.co/600x400/e0e0e0/666?text=No+Image"
+            }
             alt={product.name}
           />
-          {hasDiscount && (
-            <span className="sale-badge-large">SALE</span>
-          )}
+          {hasDiscount && <span className="sale-badge-large">SALE</span>}
         </div>
 
         <div className="product-detail-info">
@@ -65,14 +84,20 @@ function ProductDetail() {
 
           <div className="product-detail-pricing">
             {hasDiscount && (
-              <span className="original-price-large">${product.price.toFixed(2)}</span>
+              <span className="original-price-large">
+                ${product.price.toFixed(2)}
+              </span>
             )}
-            <span className="current-price-large">${displayPrice.toFixed(2)}</span>
+            <span className="current-price-large">
+              ${displayPrice.toFixed(2)}
+            </span>
           </div>
 
           <div className="product-detail-stock">
             {product.currentStock > 0 ? (
-              <span className="in-stock-large">✓ In Stock ({product.currentStock} available)</span>
+              <span className="in-stock-large">
+                ✓ In Stock ({product.currentStock} available)
+              </span>
             ) : (
               <span className="out-of-stock-large">✗ Out of Stock</span>
             )}
@@ -83,10 +108,45 @@ function ProductDetail() {
             <p>{product.description}</p>
           </div>
 
+            <div className="add-to-cart-section"> 
+            <div className="quantity-selector">
+              <label htmlFor="quantity">Quantity:</label>
+              <input
+                id="quantity"
+                type="number"
+                min="1"
+                max="10"
+                value={quantity}
+                onChange={handleQuantityChange}
+                disabled={isOutOfStock}
+              />
+            </div>
+
+            <button
+              className="add-to-cart-button"
+              onClick={handleAddToCart}
+              disabled={isOutOfStock}
+            >
+              {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+            </button>
+
+            {addedToCart && (
+              <div className="added-to-cart-message">✓ Added to cart!</div>
+            )}
+          </div>
+
           <div className="product-detail-meta">
-            <p><strong>Product ID:</strong> {product.id}</p>
-            <p><strong>Added:</strong> {new Date(product.createdDate).toLocaleDateString()}</p>
-            <p><strong>Last Updated:</strong> {new Date(product.lastUpdatedDate).toLocaleDateString()}</p>
+            <p>
+              <strong>Product ID:</strong> {product.id}
+            </p>
+            <p>
+              <strong>Added:</strong>{" "}
+              {new Date(product.createdDate).toLocaleDateString()}
+            </p>
+            <p>
+              <strong>Last Updated:</strong>{" "}
+              {new Date(product.lastUpdatedDate).toLocaleDateString()}
+            </p>
           </div>
         </div>
       </div>
