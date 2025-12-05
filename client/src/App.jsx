@@ -5,6 +5,8 @@ import ProductDetail from './components/ProductDetail';
 import Cart from './components/Cart/Cart';
 import CartButton from './components/Cart/CartButton';
 import './App.css';
+import Checkout from "./components/Checkout/Checkout";
+import OrderSuccess from "./components/Checkout/OrderSuccess";
 
 function App() {
 //Cart state
@@ -99,8 +101,8 @@ return (
       <header className="app-header">
         <div className="header-content">
           <div>
-            <h1>Blogbox Store</h1>
-            <p>Your E-Commerce Solution</p>
+            <h1>We Sell Stuff I Guess</h1>
+            <p>Just Another E-Commerce Solution Selling You Sh*t You Don't Need</p>
           </div>
           <CartButton
             itemCount={getCartItemCount()}
@@ -117,11 +119,22 @@ return (
             path="/products/:id"
             element={<ProductDetail addToCart={addToCart} />}
           />
+          <Route
+    path="/checkout"
+    element={
+      <Checkout
+        cartItems={cartItems}
+        cartTotal={getCartTotal()}
+        clearCart={clearCart}
+      />
+    }
+  />
+  <Route path="/order/success" element={<OrderSuccess />} />
         </Routes>
       </main>
 
       <footer className="app-footer">
-        <p>&copy; 2024 Blogbox Store. Built with React & ASP.NET Core</p>
+        <p>&copy; 2024 We Sell Stuff I Guess Store. Built with React & ASP.NET Core</p>
       </footer>
 
       {showCart && (
