@@ -14,10 +14,30 @@ builder.Services.AddCors(options =>
 
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddControllers();
+/*
+ReferenceHandler.IgnoreCycles: Prevents JSON serialization errors when Entity Framework navigation properties create circular references
+Without this, you'll get a "possible object cycle detected" error when returning orders with their order items
+
+The serializer will automatically skip any properties that would create an infinite loop
+
+SuppressModelStateInvalidFilter: Disables ASP.NET Core's automatic 400 Bad Request response for validation errors
+This allows our controller to manually check ModelState.IsValid and return 422 Unprocessable Entity instead
+
+422 is the semantically correct status code for validation errors (invalid data format)
+
+*/
 builder.Services.AddOpenApi();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+})
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        //Disable automatic 400 response so we can return 422 validation errors
+        options.SuppressModelStateInvalidFilter = true;
+    });
+
 builder.Services.AddDbContext<DataContext>();
 
 var app = builder.Build();
