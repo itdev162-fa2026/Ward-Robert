@@ -33,6 +33,14 @@ public class Order
 
     public DateTime ? CompletedDate { get; set; }
 
+    //Stripe payment fields
+    public string ? StripeSessionId { get; set; }
+    //StripeSessionId: Links this order to a Stripe Checkout Session (format: cs_test_...)
+    
+    //StripePaymentIntentId: Links to the actual payment record in Stripe(format: pi_...)
+
+    public string ? StripePaymentIntentId { get; set; }
+
     // Navigation property- an order can have multiple order items
     public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }
