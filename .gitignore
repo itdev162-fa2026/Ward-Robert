@@ -490,7 +490,7 @@ $RECYCLE.BIN/
 .github\instructions\codacy.instructions.md
 
 # Development settings with secrets
-appsettings.Development.json
+API/appsettings.Development.json
 
 # SQLite database files
 *.db
