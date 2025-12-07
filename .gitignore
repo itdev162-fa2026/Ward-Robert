@@ -488,3 +488,14 @@ $RECYCLE.BIN/
 
 #Ignore vscode AI rules
 .github\instructions\codacy.instructions.md
+
+# Development settings with secrets
+appsettings.Development.json
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+#text file i made for random notes
+extraNotes.txt
