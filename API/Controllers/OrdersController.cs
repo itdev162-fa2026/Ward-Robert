@@ -3,6 +3,7 @@ using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
+using  Stripe.Checkout;
 
 namespace API.Controllers;
 /*
@@ -105,6 +106,78 @@ public class OrdersController : ControllerBase
 
         return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
     }
+
+    /*
+    What this endpoint does:
+Fetches session from Stripe - Gets current payment status from Stripe API
+
+Finds order in database - Uses session ID to look up our order
+
+Updates order status:
+If payment status is "paid" → Mark order as Completed
+
+If payment status is "unpaid" → Mark order as Failed
+
+Saves payment intent ID - Links to the actual payment record in Stripe
+
+Returns order details - Includes all order items via .Include()
+
+
+    */
+
+    // GET: api/orders/session/cs_test_xxxxx
+    [HttpGet("session/{sessionId}")]
+    public async Task<ActionResult<Order>> GetOrderBySessionId(string sessionId)
+    {
+        // Fetch the session from Stripe to get payment status
+        var sessionService = new SessionService();
+        Session stripeSession;
+
+        try
+        {
+            stripeSession = await sessionService.GetAsync(sessionId);
+        }
+        catch (Stripe.StripeException ex)
+        {
+            return BadRequest($"Invalid session ID: {ex.Message}");
+        }
+
+        // Find order in  database
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .FirstOrDefaultAsync(o => o.StripeSessionId == sessionId);
+
+        if (order == null)
+        {
+            return NotFound("Order not found");
+        }
+
+        // Update order status based on Stripe payment status
+        if (stripeSession.PaymentStatus == "paid" && order.Status != OrderStatus.Completed)
+        {
+            order.Status = OrderStatus.Completed;
+            order.CompletedDate = DateTime.Now;
+            order.StripePaymentIntentId = stripeSession.PaymentIntentId;
+            await _context.SaveChangesAsync();
+        }
+        else if (stripeSession.PaymentStatus == "unpaid" && order.Status == OrderStatus.Pending)
+        {
+            // Payment was not completed
+            order.Status = OrderStatus.Failed;
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(order);
+    }
+    /*
+    Why this pattern works:
+When user completes payment and returns to our site, we check Stripe's API
+
+This is called "polling" - we check status when user returns
+
+Alternative would be webhooks which is more complex to set up but more real-time
+
+    */
 }
 
 // Request model for creating orders
