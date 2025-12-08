@@ -203,15 +203,11 @@
     transform: none;
 }
 
-.next-activity-note {
+.secure-notice {
     text-align: center;
     color: #666;
     font-size: 14px;
     margin: 0;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border-left: 4px solid #667eea;
 }
 
 @media (max-width: 768px) {

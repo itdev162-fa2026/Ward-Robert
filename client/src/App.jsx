@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import {useState,  useEffect } from 'react';
+import {useState,  useEffect, useRef } from 'react';
 import ProductList from './components/ProductList';
 import ProductDetail from './components/ProductDetail';
 import Cart from './components/Cart/Cart';
@@ -7,11 +7,14 @@ import CartButton from './components/Cart/CartButton';
 import './App.css';
 import Checkout from "./components/Checkout/Checkout";
 import OrderSuccess from "./components/Checkout/OrderSuccess";
+import CheckoutCancelled from "./components/Checkout/CheckoutCancelled";
 
 function App() {
 //Cart state
 const [cartItems, setCartItems] = useState([]);
 const [showCart, setShowCart] = useState(false);
+const hasHydratedCart = useRef(false);
+
 
 //load cart from local storage on mount
 useEffect(() => {
@@ -27,12 +30,22 @@ useEffect(() => {
 
 //save cart to local storage on change
 useEffect(() => {
+  if (!hasHydratedCart.current) {//for some reason this was needed to prevent overwriting 
+    hasHydratedCart.current = true;
+    return;
+  }
   try {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   } catch (error) {
     console.error("Error saving cart to local storage:", error);
   }
 }, [cartItems]);
+
+  //clear entire cart
+  const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem("cart");
+  };
 
 //Add item to cart or update quantity if it already exists
 const addToCart = (product, quantity) => {
@@ -75,10 +88,7 @@ const removeFromCart = (productId) => {
     );
   };
 
-  //clear entire cart
-  const clearCart = () => {
-    setCartItems([]);
-  };
+
 
   //calculate cart total (handle sales prices)
   const getCartTotal =() => {
@@ -114,12 +124,12 @@ return (
 
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<ProductList />} />
-          <Route
-            path="/products/:id"
-            element={<ProductDetail addToCart={addToCart} />}
-          />
-          <Route
+  <Route path="/" element={<ProductList />} />
+  <Route
+    path="/products/:id"
+    element={<ProductDetail addToCart={addToCart} />}
+  />
+  <Route
     path="/checkout"
     element={
       <Checkout
@@ -129,12 +139,15 @@ return (
       />
     }
   />
-  <Route path="/order/success" element={<OrderSuccess />} />
-        </Routes>
+  <Route path="/order/success" element={<OrderSuccess clearCart={clearCart} />} 
+  />
+  <Route path="/checkout/cancelled" element={<CheckoutCancelled />} />
+</Routes>
+
       </main>
 
       <footer className="app-footer">
-        <p>&copy; 2024 We Sell Stuff I Guess Store. Built with React & ASP.NET Core</p>
+        <p>&copy; 2024 We Sell Stuff I Guess. Built with React & ASP.NET Core</p>
       </footer>
 
       {showCart && (

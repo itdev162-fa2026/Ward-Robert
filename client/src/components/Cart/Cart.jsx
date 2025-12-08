@@ -2,6 +2,7 @@ import CartItem from "./CartItem";
 import "./Cart.css";
 import { Link } from "react-router-dom";
 
+
 function Cart({ items, total, onUpdateQuantity, onRemove, onClear, onClose }) {
   return (
     <div className="cart-overlay" onClick={onClose}>
@@ -44,11 +45,9 @@ function Cart({ items, total, onUpdateQuantity, onRemove, onClear, onClose }) {
                   Clear Cart
                 </button>
 
-                <Link to ="/checkout" className = "checkout-button-link">
-                <button className="checkout-button">
-                  Proceed to Checkout
-                </button>
-                </Link>
+                <Link to = "/checkout" className = "checkout-button-link">
+                <button className = "checkout-button">Proceed to Checkout</button>
+                </Link>;
               </div>;
             </>
           )}
